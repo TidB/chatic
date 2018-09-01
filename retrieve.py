@@ -16,9 +16,9 @@ def get_last_in_dir(path: Path) -> Path:
 
 def get_last_date(target: Path) -> datetime.date:
     last_log = \
-        get_last_in_dir(  # Get last year
+        get_last_in_dir(  # Get last log
             get_last_in_dir(  # Get last month
-                get_last_in_dir(  # Get last log
+                get_last_in_dir(  # Get last year
                     target
                 )
             )
@@ -33,11 +33,10 @@ def retrieve(source: str, target: Path, after: datetime.date, until: datetime.da
     # Iter over years
     while True:
         year = date.year
-        year_dir = target / str(year)
         # Iter over months
         while True:
             month = date.month
-            month_dir = year_dir / str(month).zfill(2)
+            month_dir = target / str(year) / str(month).zfill(2)
             if not month_dir.exists():
                 month_dir.mkdir(parents=True)
 
@@ -54,9 +53,10 @@ def retrieve(source: str, target: Path, after: datetime.date, until: datetime.da
                     print(date.isoformat(), e)
 
                 date += DAY
-                time.sleep(DELAY)
                 if date == until:
                     return
+
+                time.sleep(DELAY)
 
                 if date.month != month:
                     break
