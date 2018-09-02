@@ -6,9 +6,9 @@ from multiprocessing import Pool, Queue
 from pathlib import Path
 import re
 import time
-from typing import Dict, List
 
 import constants
+import models
 
 CHANNEL = 'tfwiki'
 PROCESSES = 4
@@ -27,31 +27,6 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-@dataclasses.dataclass
-class QueueItem:
-    date: datetime.date
-    users: Dict[str, DayUser]
-    hours: List[Hour]
-
-
-@dataclasses.dataclass
-class DayUser:
-    joined: datetime.datetime
-    last_seen: datetime.datetime
-    messages: int = 0
-    sum_text_size: int = 0
-
-
-@dataclasses.dataclass
-class User(DayUser):
-    days_active: int = 0
-
-
-@dataclasses.dataclass
-class Hour:
-    messages: int = 0
-
-
 def normalize_nick(nick: str) -> str:
     nick = (nick[:-3] if nick[-3:].lower() == '[m]' else nick).rstrip('_')
     nick = constants.ALIASES.get(nick, nick)
@@ -64,25 +39,25 @@ def set_queue(queue: Queue):
 
 def process_file(path: Path):
     users = {}
-    hours = [Hour() for _ in range(24)]
+    hours = [models.Hour() for _ in range(24)]
 
     text = path.read_text('utf-8')
-    for line in re.split("\\n(?=\[)", text.strip()):
+    for line in re.split('\\n(?=\[)', text.strip()):
         if not line.strip():
             continue
 
-        timestamp = datetime.datetime.strptime(line[1:20], "%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.strptime(line[1:20], '%Y-%m-%d %H:%M:%S')
         line = line[22:]
         if line[0] == '*':
             pass
         elif line[0] == '<':
-            match = re.match("(?P<nick><.+?>) (?P<message>.*)", line).groupdict()
-            nick, message = match["nick"][1:-1], match["message"]
+            match = re.match('(?P<nick><.+?>) (?P<message>.*)', line).groupdict()
+            nick, message = match['nick'][1:-1], match['message']
             if nick in constants.SKIP:
                 continue
             nick = normalize_nick(nick)
             if nick not in users:
-                users[nick] = DayUser(joined=timestamp, last_seen=timestamp)
+                users[nick] = models.SingleUser(joined=timestamp, last_seen=timestamp)
 
             users[nick].messages += 1
             users[nick].sum_text_size += len(message)
@@ -90,33 +65,36 @@ def process_file(path: Path):
 
             hours[timestamp.hour].messages += 1
 
-    process_file.queue.put(QueueItem(
+    process_file.queue.put(models.QueueItem(
         date=datetime.date.fromisoformat(path.stem),
         users=users,
         hours=hours,
     ))
 
 
-def compress(queue: Queue) -> dict:
+def compress(queue: Queue) -> models.SingleResult:
     users = {}
-    hours = [Hour() for _ in range(24)]
+    hours = [models.Hour() for _ in range(24)]
     months = {}
-    years = {}
 
     while True:
         item = queue.get(block=True)
         if item is QUEUE_END:
-            return {
-                'users': users,
-                'hours': hours,
-                'months': months,
-                'years': years,
-            }
+            return models.SingleResult(
+                users=users,
+                hours=hours,
+                months=months,
+            )
+
+        if item.date.year not in months:
+            months[item.date.year] = {i: models.SingleMonth() for i in range(1, 13)}
 
         for nick, day_user in item.users.items():
             if nick not in users:
-                users[nick] = User(day_user.joined, day_user.last_seen)
+                users[nick] = models.User(day_user.joined, day_user.last_seen)
+
             user = users[nick]
+            month = months[item.date.year][item.date.month]
 
             if day_user.joined < user.joined:
                 user.joined = day_user.joined
@@ -126,11 +104,38 @@ def compress(queue: Queue) -> dict:
             user.messages += day_user.messages
             user.sum_text_size += day_user.sum_text_size
 
-        if item.date.year not in months:
-            months[item.date.year] = []
+            month.messages += day_user.messages
+            month.sum_text_size += day_user.sum_text_size
+            month.unique_users.add(nick)
 
         for i, hour in enumerate(item.hours):
             hours[i].messages += hour.messages
+
+
+def postprocess(single_result: models.SingleResult) -> models.Result:
+    result = models.Result(
+        users=single_result.users,
+        hours=single_result.hours
+    )
+
+    for year, months in single_result.months.items():
+        if year not in result.months:
+            result.months[year] = {}
+
+        for i, month in months.items():
+            result.months[year][i] = models.Month(
+                messages=month.messages,
+                sum_text_size=month.sum_text_size,
+                unique_users=len(month.unique_users)
+            )
+
+        result.years[year] = models.Year(
+            messages=sum(month.messages for month in months.values()),
+            sum_text_size=sum(month.sum_text_size for month in months.values()),
+            unique_users=len(set().union(*(month.unique_users for month in months.values())))
+        )
+
+    return result
 
 
 def filter_users(users: dict):
@@ -144,7 +149,7 @@ def filter_users(users: dict):
 
 
 def main(source: Path, target: Path):
-    start = time.time()
+    init = time.time()
     queue = Queue()
     with Pool(processes=PROCESSES, initializer=set_queue, initargs=(queue,)) as pool:
         pool.map_async(
@@ -154,12 +159,12 @@ def main(source: Path, target: Path):
             error_callback=lambda _: print('error', _)
         )
         pool.close()
-        result = compress(queue)
-        filter_users(result['users'])
+        result = postprocess(compress(queue))
+        filter_users(result.users)
         pool.join()
-    print(f'{time.time()-start}')
+    print(f'Total {time.time()-init}')
 
-    target.write_text(json.dumps(result, cls=EnhancedJSONEncoder))
+    target.write_text(json.dumps(result, cls=EnhancedJSONEncoder, indent=4))
 
 
 if __name__ == '__main__':
