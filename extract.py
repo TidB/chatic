@@ -164,7 +164,7 @@ def main(source: Path, target: Path):
         pool.join()
     print(f'Total {time.time()-init}')
 
-    target.write_text(json.dumps(result, cls=EnhancedJSONEncoder, indent=4))
+    target.write_text(json.dumps(result, cls=EnhancedJSONEncoder))
 
 
 if __name__ == '__main__':
