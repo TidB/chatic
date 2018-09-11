@@ -46,7 +46,14 @@ def process_file(path: Path):
         if not line.strip():
             continue
 
-        timestamp = datetime.datetime.strptime(line[1:20], '%Y-%m-%d %H:%M:%S')
+        timestamp = datetime.datetime(
+            int(line[1:5]),
+            int(line[6:8]),
+            int(line[9:11]),
+            int(line[12:14]),
+            int(line[15:17]),
+            int(line[18:20]),
+        )
         line = line[22:]
         if line[0] == '*':
             pass
