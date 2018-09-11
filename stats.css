@@ -1,0 +1,39 @@
+svg {
+    margin: 2%;
+}
+
+#content > svg {
+    height: 100%;
+    width: 90%;
+}
+
+.stat-intro {
+    font-family: sans-serif;
+    font-size: 3em;
+    margin: 0.5em 0;
+    margin-left: 0.66em;
+}
+
+.chart-title {
+    font-family: sans-serif;
+    margin-left: 1em;
+}
+
+.bar {
+    fill: #ff5959;
+}
+
+.bar:hover {
+    fill: red;
+}
+
+.x-axis path, .x-axis line, .y-axis path, .y-axis line {
+    stroke: red;
+}
+
+.bar-label {
+    font-family: sans-serif;
+    font-size: 0.25em;
+    fill: white;
+    text-anchor: middle;
+}
