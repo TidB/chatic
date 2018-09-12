@@ -1,2 +1,5 @@
 .idea/
 logs/
+*.json
+main.css
+serve.py
