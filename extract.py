@@ -1,6 +1,7 @@
 from __future__ import annotations
 import dataclasses
 import datetime
+from functools import lru_cache
 import json
 from multiprocessing import Pool, Queue
 from pathlib import Path
@@ -27,6 +28,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+@lru_cache(maxsize=None)
 def normalize_nick(nick: str) -> str:
     nick = (nick[:-3] if nick[-3:].lower() == '[m]' else nick).rstrip('_')
     nick = constants.ALIASES.get(nick, nick)
