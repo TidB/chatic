@@ -25,6 +25,8 @@ class EnhancedJSONEncoder(json.JSONEncoder):
             return list(o)
         elif isinstance(o, datetime.datetime):
             return datetime.datetime.isoformat(o)
+        elif isinstance(o, datetime.date):
+            return datetime.date.isoformat(o)
         return super().default(o)
 
 
@@ -66,7 +68,7 @@ def process_file(path: Path):
                 continue
             nick = normalize_nick(nick)
             if nick not in users:
-                users[nick] = models.SingleUser(joined=timestamp, last_seen=timestamp)
+                users[nick] = models.User(joined=timestamp, last_seen=timestamp)
 
             users[nick].messages += 1
             users[nick].sum_text_size += len(message)
@@ -81,7 +83,9 @@ def process_file(path: Path):
     ))
 
 
-def compress(queue: Queue) -> models.SingleResult:
+def compress(queue: Queue) -> models.CompressedResult:
+    start_time = datetime.date.max
+    end_time = datetime.date.min
     users = {}
     hours = [models.Hour() for _ in range(24)]
     months = {}
@@ -89,18 +93,24 @@ def compress(queue: Queue) -> models.SingleResult:
     while True:
         item = queue.get(block=True)
         if item is QUEUE_END:
-            return models.SingleResult(
+            return models.CompressedResult(
+                timespan=(start_time, end_time),
                 users=users,
                 hours=hours,
                 months=months,
             )
 
+        if item.date < start_time:
+            start_time = item.date
+        elif item.date > end_time:
+            end_time = item.date
+
         if item.date.year not in months:
-            months[item.date.year] = {i: models.SingleMonth() for i in range(1, 13)}
+            months[item.date.year] = {i: models.Month() for i in range(1, 13)}
 
         for nick, day_user in item.users.items():
             if nick not in users:
-                users[nick] = models.User(day_user.joined, day_user.last_seen)
+                users[nick] = models.CompressedUser(day_user.joined, day_user.last_seen)
 
             user = users[nick]
             month = months[item.date.year][item.date.month]
@@ -121,10 +131,12 @@ def compress(queue: Queue) -> models.SingleResult:
             hours[i].messages += hour.messages
 
 
-def postprocess(single_result: models.SingleResult) -> models.Result:
+def postprocess(single_result: models.CompressedResult) -> models.Result:
     result = models.Result(
+        timespan=single_result.timespan,
         users=single_result.users,
-        hours=single_result.hours
+        hours=single_result.hours,
+        unique_users=len(single_result.users)
     )
 
     for year, months in single_result.months.items():
@@ -132,11 +144,14 @@ def postprocess(single_result: models.SingleResult) -> models.Result:
             result.months[year] = {}
 
         for i, month in months.items():
-            result.months[year][i] = models.Month(
+            result.months[year][i] = models.CompressedMonth(
                 messages=month.messages,
                 sum_text_size=month.sum_text_size,
                 unique_users=len(month.unique_users)
             )
+
+            result.messages += month.messages
+            result.sum_text_size += month.sum_text_size
 
         result.years[year] = models.Year(
             messages=sum(month.messages for month in months.values()),

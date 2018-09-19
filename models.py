@@ -1,18 +1,18 @@
 from __future__ import annotations
 import datetime
 import dataclasses
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 @dataclasses.dataclass
 class QueueItem:
     date: datetime.date
-    users: Dict[str, SingleUser]
+    users: Dict[str, User]
     hours: List[Hour]
 
 
 @dataclasses.dataclass
-class SingleUser:
+class User:
     joined: datetime.datetime
     last_seen: datetime.datetime
     messages: int = 0
@@ -20,21 +20,22 @@ class SingleUser:
 
 
 @dataclasses.dataclass
-class SingleMonth:
+class Month:
     messages: int = 0
     sum_text_size: int = 0
     unique_users: set = dataclasses.field(default_factory=set)
 
 
 @dataclasses.dataclass
-class SingleResult:
-    users: Dict[str, User] = dataclasses.field(default_factory=dict)
+class CompressedResult:
+    timespan: Tuple[datetime.datetime, datetime.datetime]
+    users: Dict[str, CompressedUser] = dataclasses.field(default_factory=dict)
     hours: List[Hour] = dataclasses.field(default_factory=list)
-    months: Dict[int, Dict[int, SingleMonth]] = dataclasses.field(default_factory=dict)
+    months: Dict[int, Dict[int, Month]] = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass
-class User(SingleUser):
+class CompressedUser(User):
     days_active: int = 0
 
     @property
@@ -48,7 +49,7 @@ class Hour:
 
 
 @dataclasses.dataclass
-class Month:
+class CompressedMonth:
     messages: int = 0
     sum_text_size: int = 0
     unique_users: int = 0
@@ -63,7 +64,11 @@ class Year:
 
 @dataclasses.dataclass
 class Result:
-    users: Dict[str, User] = dataclasses.field(default_factory=dict)
+    timespan: Tuple[datetime.datetime, datetime.datetime]
+    messages: int = 0
+    sum_text_size: int = 0
+    unique_users: int = 0
+    users: Dict[str, CompressedUser] = dataclasses.field(default_factory=dict)
     hours: List[Hour] = dataclasses.field(default_factory=list)
-    months: Dict[int, Dict[int, Month]] = dataclasses.field(default_factory=dict)
+    months: Dict[int, Dict[int, CompressedMonth]] = dataclasses.field(default_factory=dict)
     years: Dict[int, Year] = dataclasses.field(default_factory=dict)
