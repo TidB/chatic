@@ -1,3 +1,11 @@
+function generateIntro(data) {
+    d3.select('#content')
+    .append('div')
+    .attr('class', 'stat-intro')
+    .html(`Statistics for <code>#tfwiki</code> from <em>${data['timespan'][0]}</em> to <em>${data['timespan'][1]}</em>.<br>
+    <strong>${d3.format(',')(data['messages'])}</strong> messages from <strong>${d3.format(',')(data['unique_users'])}</strong> unique users totalling <strong>${d3.format(',')(data['sum_text_size'])}</strong> characters.`)
+}
+
 function generateHours(data) {
     const HOURS = data['hours'];
     const MAX_HOUR = d3.max(HOURS, o => {return o.messages});
@@ -130,6 +138,7 @@ function generateMonths() {
 }
 
 function main(data) {
+    generateIntro(data);
     generateYears(data);
     generateHours(data);
 }
