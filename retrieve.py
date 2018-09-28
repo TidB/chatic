@@ -53,7 +53,7 @@ def retrieve(source: str, target: Path, after: datetime.date, until: datetime.da
                     print(date.isoformat(), e)
 
                 date += DAY
-                if date == until:
+                if date >= until:
                     return
 
                 time.sleep(DELAY)
