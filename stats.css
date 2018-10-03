@@ -37,3 +37,12 @@ svg {
     fill: white;
     text-anchor: middle;
 }
+
+.d3-tip {
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #333333;
+    color: white;
+    padding: 3px;
+    border-radius: 3px;
+}
