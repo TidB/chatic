@@ -58,6 +58,7 @@ ALIASES = {
     'Overwatch': 'TidB',
     'umm': 'TidB',
     'Niknub': 'TidB',
+    'PECK-NECK': 'TidB',
     'WikiPan': 'Wookipan',
     'Wikipan': 'Wookipan',
     'Zeyklon': 'Zeklyn',

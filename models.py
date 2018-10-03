@@ -31,7 +31,7 @@ class CompressedResult:
     timespan: Tuple[datetime.datetime, datetime.datetime]
     users: Dict[str, CompressedUser] = dataclasses.field(default_factory=dict)
     hours: List[Hour] = dataclasses.field(default_factory=list)
-    months: Dict[int, Dict[int, Month]] = dataclasses.field(default_factory=dict)
+    months: Dict[int, List[Month]] = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass
@@ -70,5 +70,5 @@ class Result:
     unique_users: int = 0
     users: Dict[str, CompressedUser] = dataclasses.field(default_factory=dict)
     hours: List[Hour] = dataclasses.field(default_factory=list)
-    months: Dict[int, Dict[int, CompressedMonth]] = dataclasses.field(default_factory=dict)
+    months: Dict[int, List[CompressedMonth]] = dataclasses.field(default_factory=dict)
     years: Dict[int, Year] = dataclasses.field(default_factory=dict)

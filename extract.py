@@ -106,14 +106,14 @@ def compress(queue: Queue) -> models.CompressedResult:
             end_time = item.date
 
         if item.date.year not in months:
-            months[item.date.year] = {i: models.Month() for i in range(1, 13)}
+            months[item.date.year] = [models.Month() for _ in range(1, 13)]
 
         for nick, day_user in item.users.items():
             if nick not in users:
                 users[nick] = models.CompressedUser(day_user.joined, day_user.last_seen)
 
             user = users[nick]
-            month = months[item.date.year][item.date.month]
+            month = months[item.date.year][item.date.month-1]
 
             if day_user.joined < user.joined:
                 user.joined = day_user.joined
@@ -141,22 +141,22 @@ def postprocess(single_result: models.CompressedResult) -> models.Result:
 
     for year, months in single_result.months.items():
         if year not in result.months:
-            result.months[year] = {}
+            result.months[year] = []
 
-        for i, month in months.items():
-            result.months[year][i] = models.CompressedMonth(
+        for month in months:
+            result.months[year].append(models.CompressedMonth(
                 messages=month.messages,
                 sum_text_size=month.sum_text_size,
                 unique_users=len(month.unique_users)
-            )
+            ))
 
             result.messages += month.messages
             result.sum_text_size += month.sum_text_size
 
         result.years[year] = models.Year(
-            messages=sum(month.messages for month in months.values()),
-            sum_text_size=sum(month.sum_text_size for month in months.values()),
-            unique_users=len(set().union(*(month.unique_users for month in months.values())))
+            messages=sum(month.messages for month in months),
+            sum_text_size=sum(month.sum_text_size for month in months),
+            unique_users=len(set().union(*(month.unique_users for month in months)))
         )
 
     return result
