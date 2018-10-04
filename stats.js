@@ -67,72 +67,14 @@ function generateHours(data) {
     .text(function (b) {return d3.format(',')(b.messages);})
 }
 
-function generateYears(data) {
-    const YEARS = d3.entries(data['years']);
-    const MAX_YEAR = d3.max(YEARS, o => {return o.value.messages});
-
-    var padding = 20;
-
-    var width = 400;
-    var height = 150;
-
-    var totalWidth = width + padding * 2;
-    var totalHeight = height + padding * 2;
-
-    d3.select('#content')
-    .append('h1')
-    .attr('class', 'chart-title')
-    .text('Messages per year');
-
-    var svg = d3.select('#content')
-    .append('svg')
-    .attr('class', 'chart-years')
-    .attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
-
-    svg.selectAll('rect')
-    .data(YEARS)
-    .enter()
-    .append('rect')
-    .attr('class', 'bar')
-    .attr('width', function (b, i) {return width / YEARS.length - 0.5})
-    .attr('height', function (b, i) {return (b.value.messages / MAX_YEAR) * height})
-    .attr('x', function (b, i) {return i * (width / YEARS.length)})
-    .attr('y', function (b, i) {return height - (b.value.messages / MAX_YEAR) * height});
-
-    var xScale = d3.scaleBand()
-    .domain(d3.range(
-        Number(d3.min(YEARS, function (b) {return b.key})),
-        Number(d3.max(YEARS, function (b) {return b.key})) + 1
-    ))
-    .range([-0.5, width - 1]);
-    var xAxis = d3.axisBottom()
-    .scale(xScale)
-    .tickSizeOuter(0)
-    .tickSizeInner(2);
-
-    svg.append('g')
-    .attr('class', 'x-axis')
-    .attr('transform', 'translate(0, ' + height + ')')
-    .call(xAxis);
-
-    var yScale = d3.scaleLinear()
-    .domain([0, d3.max(YEARS, function(b) {return b.value.messages})])
-    .range([0, height]);
-    var yAxis = d3.axisLeft()
-    .scale(yScale)
-
-    svg.selectAll('.bar-label')
-    .data(YEARS)
-    .enter()
-    .append('text')
-    .attr('class', 'bar-label')
-    .attr('x', function(b, i) {return xScale(b.key) + xScale.bandwidth()/2 + 0.5})
-    .attr('y', function(b, i) {return height - yScale(b.value.messages) + 5})
-    .text(function (b) {return d3.format(',')(b.value.messages);})
-}
-
 function generateMonths(data) {
-    var MONTHS = [];
+    const MAPPING = {
+        'Messages': 'messages',
+        'Characters': 'sum_text_size',
+        'Unique users': 'unique_users',
+    }
+
+    var flat_months = {};
     var skipped = false;
     for (const [year, value] of Object.entries(data['months'])) {
         for (const [i, month] of Object.entries(value)) {
@@ -140,11 +82,13 @@ function generateMonths(data) {
 
             month.year = year;
             month.month = Number(i) + 1;
-            MONTHS.push(month);
+            flat_months[new Date(month.year, month.month)] = month;
             skipped = true;
         }
     }
-    const MAX_MONTH = d3.max(MONTHS, o => {return o.messages});
+
+    var DATA = d3.entries(flat_months);
+    const MAX = d3.max(DATA, o => {return o.value.messages});
 
     var padding = 20;
 
@@ -157,60 +101,149 @@ function generateMonths(data) {
     d3.select('#content')
     .append('h1')
     .attr('class', 'chart-title')
-    .text('Messages per month');
+    .html(`<select id='type-select' class='dropdown rtl'>
+        <option>Messages</option>
+        <option>Characters</option>
+        <option>Unique users</option>
+    </select> per
+    <select id='time-select' class='dropdown'>
+        <option>month</option>
+        <option>year</option>
+    </selectt>`);
 
     var svg = d3.select('#content')
     .append('svg')
-    .attr('class', 'chart-months')
+    .attr('id', 'chart-months')
     .attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
 
     shortDate = d3.timeFormat('%b \'%y');
-    tip = d3.tip()
-    .attr('class', 'd3-tip').html(function (b) {
-        return shortDate(new Date(b.year, b.month-1)) + '<br/>' + b.messages
-    })
-    .offset([-10, 0]);
+    shortNumber = d3.format(',');
+    tip = d3.tip().offset([-10, 0]);
     svg.call(tip)
 
     svg.selectAll('rect')
-    .data(MONTHS)
+    .data(DATA)
     .enter()
     .append('rect')
     .attr('class', 'bar')
-    .attr('width', function (b, i) {return width / MONTHS.length - 0.5})
-    .attr('height', function (b, i) {return (b.messages / MAX_MONTH) * height})
-    .attr('x', function (b, i) {return i * (width / MONTHS.length)})
-    .attr('y', function (b, i) {return height - (b.messages / MAX_MONTH) * height})
-    .on('mouseover', tip.show)
     .on('mouseout', tip.hide);
 
-    var xScale = d3.scaleTime()
-    .domain([
-        new Date(MONTHS[0].year, MONTHS[0].month-1),
-        new Date(MONTHS[MONTHS.length-1].year, MONTHS[MONTHS.length-1].month-1)
-    ])
-    .range([-0.5, width - 1]);
     var xAxis = d3.axisBottom()
-    .scale(xScale)
     .tickSizeOuter(0)
     .tickSizeInner(2);
 
     svg.append('g')
     .attr('class', 'x-axis')
     .attr('transform', 'translate(0, ' + height + ')')
-    .call(xAxis);
 
-    var yScale = d3.scaleLinear()
-    .domain([0, MAX_MONTH])
-    .range([0, height]);
-    var yAxis = d3.axisLeft()
-    .scale(yScale)
+    var yScale = d3.scaleLinear().range([0, height]);
+    var yAxis = d3.axisLeft().scale(yScale)
+
+    d3.select('#type-select')
+    .on('change', updateToSelection);
+
+    d3.select('#time-select')
+    .on('change', function() {
+        var selected = d3.select('#time-select').property('value');
+        if (selected === 'month')
+            updateToMonths();
+        else if (selected === 'year')
+            updateToYears();
+    });
+
+    updateToMonths();
+
+    function getSelectedType() {
+        return MAPPING[d3.select('#type-select').property('value')];
+    }
+
+    function updateToMonths() {
+        DATA = d3.entries(flat_months);
+
+        svg.selectAll('rect').data(DATA).exit().remove();
+        svg.selectAll('rect')
+        .data(DATA)
+        .enter()
+        .append('rect')
+        .attr('class', 'bar')
+
+        svg.selectAll('rect')
+        .attr('width', function (b, i) {return width / DATA.length - 0.5})
+        .attr('x', function (b, i) {return i * (width / DATA.length)})
+        .on('mouseover', tip.show);
+
+        var xScale = d3.scaleTime()
+        .domain([
+            new Date(DATA[0].value.year, DATA[0].value.month-1),
+            new Date(DATA[DATA.length-1].value.year, DATA[DATA.length-1].value.month-1)
+        ])
+        .range([-0.5, width - 1]);
+        svg.select('.x-axis').call(xAxis.scale(xScale));
+
+        svg.selectAll('.bar-label').remove();
+
+        updateToSelection();
+    }
+
+    function updateToYears() {
+        DATA = d3.entries(data['years']);
+
+        svg.selectAll('rect').data(DATA).exit().remove();
+        svg.selectAll('rect')
+        .data(DATA)
+        .enter()
+        .append('rect')
+
+        svg.selectAll('rect')
+        .attr('width', function (b, i) {return width / DATA.length - 0.5})
+        .attr('x', function (b, i) {return i * (width / DATA.length)})
+        .on('mouseover', tip.hide);
+
+        xScale = d3.scaleBand()
+        .domain(d3.range(
+            Number(d3.min(DATA, function (b) {return b.key})),
+            Number(d3.max(DATA, function (b) {return b.key})) + 1
+        ))
+        .range([-0.5, width - 1]);
+        svg.select('.x-axis').call(xAxis.scale(xScale));
+
+        svg.selectAll('.bar-label')
+        .data(DATA)
+        .enter()
+        .append('text')
+        .attr('class', 'bar-label')
+        .attr('x', function(b, i) {return xScale(b.key) + xScale.bandwidth()/2 + 0.5})
+        .text(function (b) {return d3.format(',')(b.value[getSelectedType()])});
+
+        updateToSelection();
+    }
+
+    function updateToSelection() {
+        var selected = MAPPING[d3.select('#type-select').property('value')];
+        updateTo(selected);
+    }
+
+    function updateTo(type) {
+        const MAX = d3.max(DATA, o => {return o.value[type]});
+        yScale.domain([0, d3.max(DATA, function(b) {return b.value[getSelectedType()]})])
+        d3.selectAll('#chart-months rect')
+        .transition()
+        .attr('height', function (b, i) {return (b.value[type] / MAX) * height})
+        .attr('y', function (b, i) {return height - (b.value[type] / MAX) * height})
+
+        tip.attr('class', 'd3-tip').html(function (b) {return shortDate(new Date(b.value.year, b.value.month-1)) + '<br/>' + shortNumber(b.value[type])})
+
+        svg.selectAll('.bar-label')
+        .data(DATA)
+        .transition()
+        .attr('y', function(b, i) {return height - yScale(b.value[type]) + 5})
+        .text(function (b) {return d3.format(',')(b.value[type])});
+    }
 }
 
 function main(data) {
     generateIntro(data);
     generateMonths(data);
-    generateYears(data);
     generateHours(data);
 }
 

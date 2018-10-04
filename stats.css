@@ -19,6 +19,22 @@ svg {
     margin-left: 1em;
 }
 
+.dropdown {
+    border: 0;
+    color: red;
+    font-size: 1em;
+    text-align: right;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.rtl {
+    direction: rtl;
+}
+
 .bar {
     fill: #ff5959;
 }
