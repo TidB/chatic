@@ -160,7 +160,6 @@ function generateMonths(data) {
     function updateToMonths() {
         DATA = d3.entries(flat_months);
 
-        svg.selectAll('rect').data(DATA).exit().remove();
         svg.selectAll('rect')
         .data(DATA)
         .enter()
@@ -189,10 +188,6 @@ function generateMonths(data) {
         DATA = d3.entries(data['years']);
 
         svg.selectAll('rect').data(DATA).exit().remove();
-        svg.selectAll('rect')
-        .data(DATA)
-        .enter()
-        .append('rect')
 
         svg.selectAll('rect')
         .attr('width', function (b, i) {return width / DATA.length - 0.5})
@@ -241,10 +236,149 @@ function generateMonths(data) {
     }
 }
 
+function generateUsers(data) {
+    const MAPPING = {
+        'Messages': 'messages',
+        'Characters': 'sum_text_size',
+        'Active days': 'days_active',
+    }
+
+    var USERS = d3.entries(data['users']);
+    USERS.sort(function (x, y) {
+            return d3.descending(x.value.messages, y.value.messages);
+        });
+    const MAX = d3.max(USERS, o => {return o.value.messages});
+
+    var padding = 20;
+    var leftPadding = 55;
+
+    var width = 400;
+    var height = 1200;
+
+    var totalWidth = width + padding * 2 + leftPadding;
+    var totalHeight = height + padding * 2;
+
+    d3.select('#content')
+    .append('h1')
+    .attr('class', 'chart-title')
+    .html(`<select id='user-type-select' class='dropdown rtl'>
+        <option>Messages</option>
+        <option>Characters</option>
+        <option>Active days</option>
+    </select> per user`);
+
+    var svg = d3.select('#content')
+    .append('svg')
+    .attr('id', 'chart-users')
+    .attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
+
+    shortDate = d3.timeFormat('%b \'%y');
+    shortNumber = d3.format(',');
+    tip = d3.tip().offset([-10, 0]);
+    svg.call(tip)
+
+    svg.selectAll('rect')
+    .data(USERS)
+    .enter()
+    .append('rect')
+    .attr('class', 'bar')
+    .attr('height', function (b, i) {return height / USERS.length - 0.5})
+    .attr('x', function(b, i) {return leftPadding;})
+    .attr('y', function (b, i) {return i * (height / USERS.length)})
+    .on('mouseover', tip.show)
+    .on('mouseout', tip.hide);
+
+    svg.selectAll('bar')
+    .data(USERS)
+    .enter()
+    .append('text')
+    .attr('class', 'user-label')
+    .attr('x', function (b, i) {return leftPadding - 5; })
+    .attr('y', function (b, i) {return i * (height / USERS.length) + 4})
+    .attr('text-anchor', 'end');
+
+    svg.selectAll('bar')
+    .data(USERS)
+    .enter()
+    .append('text')
+    .attr('class', 'hor-bar-label')
+    .attr('x', function (b, i) {return leftPadding - 5; })
+    .attr('y', function (b, i) {return i * (height / USERS.length) + 4.5})
+    .attr('text-anchor', 'start');
+
+
+    var xAxis = d3.axisBottom()
+    .tickSizeOuter(0)
+    .tickSizeInner(2)
+    .tickFormat(d3.format('~s'));
+
+    svg.append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', 'translate(0, ' + height + ')')
+
+    var yScale = d3.scaleBand().range([0, height]);
+    var yAxis = d3.axisLeft().scale(yScale)
+
+    d3.select('#user-type-select')
+    .on('change', updateToSelection);
+
+    updateToSelection();
+
+    function getSelectedType() {
+        return MAPPING[d3.select('#user-type-select').property('value')];
+    }
+
+    function updateToSelection() {
+        var selected = MAPPING[d3.select('#user-type-select').property('value')];
+        updateTo(selected);
+    }
+
+    function updateTo(type) {
+        USERS.sort(function (x, y) {
+            return d3.descending(x.value[type], y.value[type]);
+        });
+        const MAX = d3.max(USERS, o => {return o.value[type]});
+
+        var xScale = d3.scaleLinear()
+        .domain([USERS[USERS.length-1].value[type], USERS[0].value[type]])
+        .range([leftPadding - 0.5, width - 1]);
+        svg.select('.x-axis').call(xAxis.scale(xScale));
+
+        yScale.domain([0, d3.max(USERS, function(b) {return b.value[getSelectedType()]})])
+
+        svg.selectAll('#chart-users .user-label')
+        .data(USERS)
+        .style("opacity", 0)
+        .text(function (b) {return b.key})
+        .transition()
+        .style("opacity", 1)
+        .transition()
+        .delay(1500)
+
+        svg.selectAll('#chart-users .hor-bar-label')
+        .data(USERS)
+        .style("opacity", 0)
+        .text(function (b) {return d3.format(',')(b.value[type])})
+        .attr('x', function (b, i) {return (b.value[type] / MAX) * width + leftPadding + 2; })
+        .transition()
+        .style("opacity", 1)
+        .transition()
+        .delay(1500);
+
+        d3.selectAll('#chart-users rect')
+        .data(USERS)
+        .transition()
+        .attr('width', function (b, i) {return (b.value[type] / MAX) * width})
+
+        tip.attr('class', 'd3-tip').html(function (b) {return b.key + '<br/>' + shortNumber(b.value[type])})
+    }
+}
+
 function main(data) {
     generateIntro(data);
     generateMonths(data);
     generateHours(data);
+    generateUsers(data);
 }
 
 var request = new XMLHttpRequest();

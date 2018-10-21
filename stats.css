@@ -54,6 +54,12 @@ svg {
     text-anchor: middle;
 }
 
+.hor-bar-label {
+    font-family: sans-serif;
+    font-size: 0.25em;
+    fill: #ff5959;
+}
+
 .d3-tip {
     font-family: sans-serif;
     text-align: center;
@@ -61,4 +67,9 @@ svg {
     color: white;
     padding: 3px;
     border-radius: 3px;
+}
+
+.user-label {
+    font-family: sans-serif;
+    font-size: 0.25em;
 }
