@@ -62,4 +62,5 @@ ALIASES = {
     'WikiPan': 'Wookipan',
     'Wikipan': 'Wookipan',
     'Zeyklon': 'Zeklyn',
+    'Zeyklno': 'Zeklyn',
 }
