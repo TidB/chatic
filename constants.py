@@ -38,7 +38,7 @@ SPAM = {'icee6', 'Strog5', 'Pilfers', 'aaron7', 'sabre104127', 'd10n4',
         'nullcone', 'Evel-Knievel', 'Skunky5', 'peaches', 'richvdh14',
         'lynxis2', 'Vercas27', 'Waldo8', 'ikevin26', 'klx``19',
         'HarryCross218', 'casdr7', 'VM_', 'Guest92322', 'robotroll',
-        'sekizo8', 'albel7270', 'Kinny2'}
+        'sekizo8', 'albel7270', 'Kinny2', 'XXXX'}
 
 IGNORE = {'Spacenet'}
 SKIP = SPAM | IGNORE
@@ -59,6 +59,7 @@ ALIASES = {
     'umm': 'TidB',
     'Niknub': 'TidB',
     'PECK-NECK': 'TidB',
+    'TestdB': 'TidB',
     'WikiPan': 'Wookipan',
     'Wikipan': 'Wookipan',
     'Zeyklon': 'Zeklyn',
