@@ -40,7 +40,7 @@ SPAM = {'icee6', 'Strog5', 'Pilfers', 'aaron7', 'sabre104127', 'd10n4',
         'HarryCross218', 'casdr7', 'VM_', 'Guest92322', 'robotroll',
         'sekizo8', 'albel7270', 'Kinny2', 'XXXX'}
 
-IGNORE = {'Spacenet'}
+IGNORE = {'Spacenet', 'Pillownet'}
 SKIP = SPAM | IGNORE
 
 ALIASES = {
