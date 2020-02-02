@@ -64,4 +64,5 @@ ALIASES = {
     'Wikipan': 'Wookipan',
     'Zeyklon': 'Zeklyn',
     'Zeyklno': 'Zeklyn',
+    'FiatSeicento': 'Fiat_Seicento'
 }
