@@ -44,6 +44,10 @@ IGNORE = {'Spacenet', 'Pillownet'}
 SKIP = SPAM | IGNORE
 
 ALIASES = {
+    'FiatSeicento': 'Fiat',
+    'Fiat_Seicento': 'Fiat',
+    'Fiat_Punto': 'Fiat',
+    'senm': 'senmithrarin',
     'TidPleb': 'TidB',
     'TidKek': 'TidB',
     'TidNub': 'TidB',
@@ -60,9 +64,9 @@ ALIASES = {
     'Niknub': 'TidB',
     'PECK-NECK': 'TidB',
     'TestdB': 'TidB',
+    'v4ssili': 'VasyaTheWizard',
     'WikiPan': 'Wookipan',
     'Wikipan': 'Wookipan',
     'Zeyklon': 'Zeklyn',
     'Zeyklno': 'Zeklyn',
-    'FiatSeicento': 'Fiat_Seicento'
 }

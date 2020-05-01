@@ -1,5 +1,6 @@
 .idea/
 logs/
+corpus/
 *.json
 main.css
 serve.py
