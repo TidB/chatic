@@ -8,6 +8,7 @@ CHANNEL = 'tfwiki'
 DAY = datetime.timedelta(days=1)
 FIRST = datetime.date(2017, 4, 19)  # Earliest logs since Wind's DB got killed
 DELAY = 5  # Wind recommended one request every five seconds
+TIMEZONE_OFFSET = 5
 
 
 def get_last_in_dir(path: Path) -> Path:
@@ -42,6 +43,9 @@ def retrieve(source: str, target: Path, after: datetime.date, until: datetime.da
 
             # Iter over days
             while True:
+                if date >= until:
+                    return
+
                 file = (month_dir / date.isoformat()).with_suffix('.txt')
                 url = source + f'/{date.isoformat()}.txt'
                 try:
@@ -53,8 +57,6 @@ def retrieve(source: str, target: Path, after: datetime.date, until: datetime.da
                     print(date.isoformat(), e)
 
                 date += DAY
-                if date >= until:
-                    return
 
                 time.sleep(DELAY)
 
@@ -71,7 +73,7 @@ def main(source: str, target: Path):
     else:
         start_date = get_last_date(target) + DAY
 
-    retrieve(source, target, start_date, datetime.date.today())
+    retrieve(source, target, start_date, (datetime.datetime.now() - datetime.timedelta(hours=TIMEZONE_OFFSET)).date())
 
 
 if __name__ == '__main__':
