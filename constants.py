@@ -47,6 +47,7 @@ ALIASES = {
     'FiatSeicento': 'Fiat',
     'Fiat_Seicento': 'Fiat',
     'Fiat_Punto': 'Fiat',
+    'FiatGrandePunto': 'Fiat',
     'senm': 'senmithrarin',
     'TidPleb': 'TidB',
     'TidKek': 'TidB',
