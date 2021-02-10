@@ -65,6 +65,7 @@ ALIASES = {
     'Niknub': 'TidB',
     'PECK-NECK': 'TidB',
     'TestdB': 'TidB',
+    'smol_data': 'TidB',
     'v4ssili': 'VasyaTheWizard',
     'WikiPan': 'Wookipan',
     'Wikipan': 'Wookipan',
