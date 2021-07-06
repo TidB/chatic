@@ -1,4 +1,6 @@
 /logs
 /.idea
+/venv
+/__pycache__
 serve.py
 main.css
