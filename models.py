@@ -17,6 +17,7 @@ class User:
     last_seen: datetime.datetime
     messages: int = 0
     sum_text_size: int = 0
+    uwus: int = 0
 
 
 @dataclasses.dataclass

@@ -70,6 +70,8 @@ ALIASES = {
     'NFTs': 'TidB',
     'Metaverse': 'TidB',
     'Metamate': 'TidB',
+    'NFTverse': 'TidB',
+    'BiteOf87': 'TidB',
     'VasyaTheWizard': 'karl37',
     'v4ssili': 'karl37',
     'WikiPan': 'Wookipan',

@@ -74,6 +74,8 @@ def process_file(path: Path):
             users[nick].sum_text_size += len(message)
             users[nick].last_seen = timestamp
 
+            users[nick].uwus += len(re.findall(r'\buwu\b', message))
+
             hours[timestamp.hour].messages += 1
 
     process_file.queue.put(models.QueueItem(
@@ -122,6 +124,7 @@ def compress(queue: Queue) -> models.CompressedResult:
             user.days_active += 1
             user.messages += day_user.messages
             user.sum_text_size += day_user.sum_text_size
+            user.uwus += day_user.uwus
 
             month.messages += day_user.messages
             month.sum_text_size += day_user.sum_text_size
