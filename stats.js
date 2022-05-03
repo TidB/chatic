@@ -241,6 +241,7 @@ function generateUsers(data) {
         'Messages': 'messages',
         'Characters': 'sum_text_size',
         'Active days': 'days_active',
+        'uwus': 'uwus',
     }
 
     var USERS = d3.entries(data['users']);
@@ -265,6 +266,7 @@ function generateUsers(data) {
         <option>Messages</option>
         <option>Characters</option>
         <option>Active days</option>
+        <option>uwus</option>
     </select> per user`);
 
     var svg = d3.select('#content')
