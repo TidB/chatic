@@ -33,8 +33,8 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 @lru_cache(maxsize=None)
 def normalize_nick(nick: str) -> str:
     nick = (nick[:-3] if nick[-3:].lower() == '[m]' else nick).rstrip('_')
-    nick = constants.ALIASES.get(nick, nick)
-    return nick.lower()
+    nick = constants.ALIASES.get(nick.lower(), nick.lower())
+    return nick
 
 
 def set_queue(queue: Queue):
