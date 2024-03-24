@@ -79,10 +79,13 @@ ALIASES = {
     'white[british]': 'tidb',
     'the_one_piece': 'tidb',
     'kidnamedfinger': 'tidb',
+    'mthatcher': 'tidb',
+    'm_thatcher': 'tidb',
     'vasyathewizard': 'karl37',
     'v4ssili': 'karl37',
     'wikipan': 'wookipan',
     'zeyklon': 'zeklyn',
     'zeyklno': 'zeklyn',
     'zeklynn': 'zeklyn',
+    'cheddarbread': 'cheddar',
 }
