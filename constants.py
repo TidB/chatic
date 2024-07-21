@@ -81,6 +81,8 @@ ALIASES = {
     'kidnamedfinger': 'tidb',
     'mthatcher': 'tidb',
     'm_thatcher': 'tidb',
+    'irc_kitten': 'tidb',
+    'gouda': 'tidb',
     'vasyathewizard': 'karl37',
     'v4ssili': 'karl37',
     'wikipan': 'wookipan',
