@@ -12,7 +12,6 @@ import constants
 import models
 
 CHANNEL = 'tfwiki'
-PROCESSES = 4
 QUEUE_END = None
 MESSAGE_THRESHOLD = 1000
 
@@ -178,7 +177,7 @@ def filter_users(users: dict):
 def main(source: Path, target: Path):
     init = time.time()
     queue = Queue()
-    with Pool(processes=PROCESSES, initializer=set_queue, initargs=(queue,)) as pool:
+    with Pool(initializer=set_queue, initargs=(queue,)) as pool:
         pool.map_async(
             process_file,
             source.glob('**/*.*'),
